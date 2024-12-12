@@ -1,6 +1,16 @@
 /***************************** BEGIN LICENSE BLOCK ***************************
 
- TODO
+ The contents of this file are subject to the Mozilla Public License, v. 2.0.
+ If a copy of the MPL was not distributed with this file, You can obtain one
+ at http://mozilla.org/MPL/2.0/.
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the License.
+
+ Copyright (C) 2015-2020 Mathieu Dhainaut. All Rights Reserved.
+
+ Author: Mathieu Dhainaut <mathieu.dhainaut@gmail.com>
 
  ******************************* END LICENSE BLOCK ***************************/
 
@@ -11,13 +21,40 @@ import { isDefined } from "../../utils/Utils.js";
  * @extends Layer
  * @example
  *
- * xxx
+ * import LineLayer from 'core/ui/layer/LineLayer.js';
+ *
+ * let lineLayer = new LineLayer({
+         getStartLocationAndBearing: (rec: any) => {
+             return {
+                 startLocation: {
+                     x: rec.location.lon,
+                     y: rec.location.lat,
+                     z: rec.location.alt,
+                },
+                bearing: rec['raw-lob'] * Math.PI / 180
+             }
+         },
+         color : 'rgba(0,0,255,0.5)',
+         weight : 10,
+         opacity : .5,
+    });
  */
 class LineLayer extends Layer {
     /**
      * Creates the LineLayer
      * @param {Object} properties
-     * xxx
+     * // TODO
+     * @param {Object[]} [properties.locations] - defines the start and end location of the line [lat, lon]
+     * @param {Number} [properties.weight=1] - defines the weight of the polyline
+     * @param {String} [properties.color='red'] - defines the color of the polyline
+     * @param {Number} [properties.opacity=1] - defines the opacity of the polyline
+     * @param {Number} [properties.maxPoints=2] - defines a number max of points. should only ever be 2
+     * @param {Boolean} [properties.clampToGround=true] - defines if the line has to be clamped to ground
+     * @param {Number} [properties.distanceKm] - defines the distance of the line
+     * @param {Function} [properties.getStartLocationAndBearing] - defines a function to return the start location and bearing
+     * @param {Function} [properties.getColor] - defines a function to return the color
+     * @param {Function} [properties.getWeight] - defines a function to return the weight
+     * @param {Function} [properties.getOpacity] - defines a function to return the opacity
      */
     constructor(properties) {
         super(properties);
@@ -30,11 +67,13 @@ class LineLayer extends Layer {
         const props = {
             type: 'polyline',
             locations: [],
+            distanceKm: 200,
             color: 'red',
             weight: 1,
             opacity: 1,
             polylineId: 'bearingLine',
-            clampToGround: false,
+            clampToGround: true,
+            maxPoints: 2,
             properties: properties,
         };
 
@@ -54,28 +93,23 @@ class LineLayer extends Layer {
             props.opacity = properties.opacity;
         }
 
+        if (isDefined(properties.distanceKm)){
+            props.distanceKm = properties.distanceKm;
+        }
+
         if (isDefined(properties.clampToGround)){
             props.clampToGround = properties.clampToGround;
         }
 
-        // I think this should be polylineId but I don't know why yet
         this.definedId('polylineId', props);
 
-        // TODO bearing = heading * Math.PI / 180
-        if (isDefined(properties.getBearing)) {
+        if (isDefined(properties.getStartLocationAndBearing)) {
             const fn = async (rec, timestamp, options) => {
-                this.updateProperty('bearing', await this.getFunc('getBearing')(rec, timestamp, options));
-            };
-            this.addFn(this.getDataSourcesIdsByProperty('getBearing'), fn);
-        }
-
-        if (isDefined(properties.getLocation)) {
-            const fn = async (rec, timestamp, options) => {
-                const startLoc = await this.getFunc('getLocation')(rec, timestamp, options);
-                const endLoc = this.getEndLoc(startLoc, this.props.bearing, this.props.distanceKm);
+                const {startLocation: startLoc, bearing} = await this.getFunc('getStartLocationAndBearing')(rec, timestamp, options);
+                const endLoc = this.getEndLoc(startLoc, bearing, props.distanceKm);
                 this.updateProperty('locations', [startLoc, endLoc]);
             };
-            this.addFn(this.getDataSourcesIdsByProperty('getLocation'),fn);
+            this.addFn(this.getDataSourcesIdsByProperty('getStartLocationAndBearing'),fn);
         }
     }
 
@@ -130,9 +164,9 @@ class LineLayer extends Layer {
         }
 
         return {
-            lat: (endLatRadians * 180) / Math.PI,
-            lon: endPosLon,
-            alt: startLocation.z,
+            x: endPosLon,
+            y: (endLatRadians * 180) / Math.PI,
+            z: startLocation.z,
         };
     }
 }
