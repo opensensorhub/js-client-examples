@@ -43,7 +43,6 @@ class LineLayer extends Layer {
     /**
      * Creates the LineLayer
      * @param {Object} properties
-     * // TODO
      * @param {Object[]} [properties.locations] - defines the start and end location of the line [lat, lon]
      * @param {Number} [properties.weight=1] - defines the weight of the polyline
      * @param {String} [properties.color='red'] - defines the color of the polyline
