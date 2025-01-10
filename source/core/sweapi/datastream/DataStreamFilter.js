@@ -40,7 +40,7 @@ class DataStreamFilter extends SensorWebApiFilter {
             bbox: undefined,
             location: undefined,
             observedProperty: undefined,
-            featureOfInterest: undefined,
+            foi: undefined,
             select: undefined,
             format: 'application/json',
             obsFormat: 'application/om+json',

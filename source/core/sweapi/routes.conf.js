@@ -25,7 +25,7 @@ const API = {
         search: '/systems',
         by_id: '/systems/{sysid}',
         details: '/systems/{sysid}/details',
-        fois: '/systems/{sysid}/featuresOfInterest',
+        fois: '/systems/{sysid}/samplingFeatures',
         members: '/systems/{sysid}/members',
         datastreams: '/systems/{sysid}/datastreams',
         history_ver: '/systems/{sysid}/history/{ver}',
