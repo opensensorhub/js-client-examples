@@ -35,6 +35,7 @@ class SystemFilter extends SensorWebApiFilter {
             bbox: undefined,
             location: undefined,
             parent: undefined,
+            foi: undefined,
             select: undefined,
             format: 'application/json',
             validTime: undefined,
